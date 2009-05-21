@@ -20,6 +20,36 @@ Requirements
 =====
 * Java Runtime Environment(JRE) 1.5 aka 5.0 or higher [http://java.sun.com/](http://java.sun.com/)
 
+Features
+======
+
+* Fully compatible with will_paginate view helpers and :page/:per_page options
+* Using Solr 1.3.0
+
+Things to be done
+======
+
+* Simplify configuration
+* Examples using the "did you mean?" feature
+* Upgrade and improve Jetty config
+
+Mantainer
+======
+Maurício Linhares (mauricio dot linhares AT gmail dot com)
+
+Original Authors
+======
+Erik Hatcher
+Thiago Jackiw
+
+Release Information
+======
+Released under the MIT license.
+
+More info
+======
+[http://github.com/mauricio/acts_as_solr/tree/master](http://github.com/mauricio/acts_as_solr/tree/master)
+
 Basic Usage
 ======
 <pre><code>
@@ -80,31 +110,3 @@ Basic Usage
 # Please see ActsAsSolr::ActsMethods for a complete info
 
 </code></pre>
-
-# Features #
-
-* Fully compatible with will_paginate view helpers and :page/:per_page options
-* Using Solr 1.3.0
-
-Things to be done
-
-* Simplify configuration
-* Examples using the "did you mean?" feature
-* Upgrade and improve Jetty config
-
-Mantainer
-
-Maurício Linhares (mauricio dot linhares AT gmail dot com)
-
-# Original Authors #
-
-Erik Hatcher
-Thiago Jackiw
-
-# Release Information #
-
-Released under the MIT license.
-
-# More info #
-
-[http://github.com/mauricio/acts_as_solr/tree/master](http://github.com/mauricio/acts_as_solr/tree/master)
