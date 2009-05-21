@@ -83,6 +83,17 @@ Basic Usage
 
   end
 
+# And this is all there is to it, you don't need to get your hands dirty on
+# Solr schema or document files, only if the default config doesn't suit your
+# needs. After every save/destroy the Solr index for that object is going to be
+# updated, so all you need to do is configure your active_record object as above
+# start the Solr server (rake solr:start) and be done with it.
+
+# If you're starting up from an already populated database, you'll have to build
+# and index based on that data. To do this, start the Solr server (rake solr:start)
+# and then call the reindex task (rake solr:rebuild_index), this will rebuild
+# the index based on all objects currently stored on your database.
+
 # Then to find instances of your model, just do:
   books = Book.find_by_solr(query)
 
