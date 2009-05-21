@@ -56,7 +56,7 @@ namespace :solr do
     end
   end
 
-  desc 'Rebuild solr index'
+  desc 'Rebuilds solr index'
   task :rebuild_index => :environment do
     
     if ENV['start'].blank?

@@ -17,10 +17,28 @@ module ActsAsSolr #:nodoc:
     #  end
     # 
     # You can also search for specific fields by searching for 'field:value'
+    # The object returned (ActsAsSolr::SearchResults) works just like a common
+    # array and is also compatible with will_paginate helpers.
     # 
     # ====options:
+    #
+    # will_paginate's compatible pagination
+    #
+    # page:: - The page you want returned
+    # per_page:: - The number of results per page
+    # 
+    # common pagination
+    #
     # offset:: - The first document to be retrieved (offset)
     # limit:: - The number of rows per page
+    #
+    # conditions:: - An active_record compatible conditions (string, array or hash)
+    #                object that is going to be used to further filter the results
+    #                returned by this Solr query. You could use this to query
+    #                your users but only return the ones that are activated.
+    #
+    #                User.find_by_solr( 'josh', :conditions => { :activated => true }  )
+    #
     # order:: - Orders (sort by) the result set using a given criteria:
     #
     #             Book.find_by_solr 'ruby', :order => 'description asc'
@@ -61,7 +79,7 @@ module ActsAsSolr #:nodoc:
     #            => 0.12321548
     # 
     def find_by_solr(query, options={})
-      return nil if query.blank?
+      return [] if query.blank?
       data = parse_query(query.downcase, options)
       return parse_results(data, options) if data
     end
