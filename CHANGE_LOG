@@ -1,4 +1,16 @@
 == CHANGE_LOG
+
+=== 20-05-2009: Version 1.0
+
+<b>NEW</b>:: No need to call "records" at the returned object from find_by_solr,
+  now it's an Enumerable and behaves just like any other Array object.
+<b>NEW</b>:: Upgraded Solr to 1.3.0
+<b>NEW</b>:: Added support to will_paginate's style pagination by having 
+  :page and :per_page options at the find_by_solr calls and also updated
+  the pagination methods to work correctly with the latest will_paginate's
+  view helpers.
+<b>NEW</b>:: Added support for a :conditions option to find_by_solr calls to further filter the returned results.
+
 === 06-18-2007: Version 0.9
 <b>NEW</b>:: Added the option :scores when doing a search. If set to true this will return the score as a 'solr_score' attribute or each one of the instances found
   books = Book.find_by_solr 'ruby OR splinter', :scores => true
