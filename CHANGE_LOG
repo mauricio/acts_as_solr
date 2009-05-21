@@ -10,6 +10,7 @@
   the pagination methods to work correctly with the latest will_paginate's
   view helpers.
 <b>NEW</b>:: Added support for a :conditions option to find_by_solr calls to further filter the returned results.
+<b>NEW</b>:: Added rake task to rebuild the indexes for all acts_as_solr enabled models
 
 === 06-18-2007: Version 0.9
 <b>NEW</b>:: Added the option :scores when doing a search. If set to true this will return the score as a 'solr_score' attribute or each one of the instances found

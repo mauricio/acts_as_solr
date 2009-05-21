@@ -83,13 +83,11 @@ Basic Usage
 
 Features
 =====
-
 * Fully compatible with will_paginate view helpers and :page/:per_page options
 * Using Solr 1.3.0
 
 Things to be done
 =====
-
 * Simplify configuration
 * Examples using the "did you mean?" feature
 * Upgrade and improve Jetty config
