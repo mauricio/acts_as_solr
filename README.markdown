@@ -81,30 +81,30 @@ Basic Usage
 
 </code></pre>
 
-Features
-=====
+# Features #
+
 * Fully compatible with will_paginate view helpers and :page/:per_page options
 * Using Solr 1.3.0
 
 Things to be done
-=====
+
 * Simplify configuration
 * Examples using the "did you mean?" feature
 * Upgrade and improve Jetty config
 
 Mantainer
-=====
+
 Maurício Linhares (mauricio dot linhares AT gmail dot com)
 
-Original Authors
-=====
+# Original Authors #
+
 Erik Hatcher
 Thiago Jackiw
 
-Release Information
-=====
+# Release Information #
+
 Released under the MIT license.
 
-More info
-=====
+# More info #
+
 [http://github.com/mauricio/acts_as_solr/tree/master](http://github.com/mauricio/acts_as_solr/tree/master)
