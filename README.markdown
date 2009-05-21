@@ -39,8 +39,8 @@ Maurício Linhares (mauricio dot linhares AT gmail dot com)
 
 Original Authors
 ======
-Erik Hatcher
-Thiago Jackiw
+* Erik Hatcher
+* Thiago Jackiw
 
 Release Information
 ======
