@@ -77,7 +77,7 @@ Basic Usage
 
     acts_as_solr :fields => [:name, :author_name]
 
-    def autor_name
+    def author_name
       self.author.name if self.author
     end
 
