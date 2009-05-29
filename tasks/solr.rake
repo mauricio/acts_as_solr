@@ -10,6 +10,26 @@ namespace :solr do
     ENV['PID_PATH'] || "#{RAILS_ROOT}/tmp/pids/solr_#{RAILS_ENV}.pid"
   end
 
+  #this is needed due to the new Rails lazy load behaviour under development
+  def load_models
+    require_file_or_directory( File.join( RAILS_ROOT, 'app', 'models' ) ) if ActsAsSolr::Post.indexed_classes.blank?
+  end
+
+  def require_file_or_directory( path )
+
+    excludes = ['..', '.']
+
+    Dir.entries( path ).find_all { |f| !excludes.include?( f )}.each do |f|
+      full_path = File.join( path, f )
+      if File.directory?( full_path )
+        require_file_or_directory( full_path )
+      else
+        require full_path
+      end
+    end
+
+  end
+
   desc 'Starts Solr. Options accepted: PID_PATH, RAILS_ENV, SOLR_HOME'
   task :start => :environment do
 
@@ -72,7 +92,7 @@ namespace :solr do
 
   desc 'Rebuild solr index'
   task :rebuild_index => :environment do
-    
+    load_models
     if ENV['start'].blank?
       ActsAsSolr::Post.rebuild_indexes
     else
@@ -87,7 +107,14 @@ namespace :solr do
   task :setup => :environment do
     Rake::Task["solr:start"].invoke
     sleep(5)
+    load_models
     ActsAsSolr::Post.rebuild_indexes
+  end
+
+  desc "Optimizes the Solr index - this task should be run once a day and also everytime there's a big index update "
+  task :optimize => :environment do
+    load_models
+    ActsAsSolr::Post.optimize_indexes
   end
 
 end

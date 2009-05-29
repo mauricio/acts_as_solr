@@ -65,8 +65,17 @@ module ActsAsSolr
       end
 
       def rebuild_indexes( batch_size = 100, &finder )
+        puts "Rebuilding indexes for -> #{indexed_classes.inspect}"
         indexed_classes.each do |c|
           c.rebuild_solr_index( batch_size, &finder )
+        end
+        true
+      end
+
+      def optimize_indexes
+        puts "Optimizing indexes for -> #{indexed_classes.inspect}"
+        indexed_classes.each do |c|
+          c.solr_optimize
         end
         true
       end
