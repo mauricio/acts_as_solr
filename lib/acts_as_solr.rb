@@ -36,26 +36,15 @@ module ActsAsSolr
   class Post
 
     @@indexed_classes = []
+    @@solr_configuration = {:url => 'http://localhost:8982/solr' }
     cattr_accessor :indexed_classes
-
-    def self.execute(request)
-      begin
-        if File.exists?(RAILS_ROOT+'/config/solr.yml')
-          config = YAML::load_file(RAILS_ROOT+'/config/solr.yml')
-          url = config[RAILS_ENV]['url']
-          # for backwards compatibility
-          url ||= "http://#{config[RAILS_ENV]['host']}:#{config[RAILS_ENV]['port']}/#{config[RAILS_ENV]['servlet_path']}"
-        else
-          url = 'http://localhost:8982/solr'
-        end
-        connection = Solr::Connection.new(url)
-        return connection.send(request)
-      rescue => ex
-        raise ex, "Couldn't connect to the Solr server at #{url}. #{ex}"
-      end
-    end
+    cattr_accessor :solr_configuration
 
     class << self
+
+      def execute(request)
+        Solr::Connection.new( solr_configuration[:url] ).send(request)
+      end
 
       def rebuild_indexes( batch_size = 100, &finder )
         indexed_classes.each do |c|
@@ -72,3 +61,9 @@ end
 
 # reopen ActiveRecord and include the acts_as_solr method
 ActiveRecord::Base.extend ActsAsSolr::ActsMethods
+
+solr_file_path = File.join( RAILS_ENV, 'config', 'solr.yml' )
+
+if File.exists?( solr_file_path )
+  ActsAsSolr::Post.solr_configuration = YAML::load_file( solr_file_path )[RAILS_ENV].symbolize_keys
+end

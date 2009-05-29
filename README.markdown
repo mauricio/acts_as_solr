@@ -46,6 +46,14 @@ Release Information
 ======
 Released under the MIT license.
 
+Migrating from older versions
+======
+
+If you're migrating from older acts_as_solr versions (that probably came from
+another repo and not http://github.com/mauricio/acts_as_solr/tree/master )
+all you have to do is to copy the "jetty/solr/conf" folder to your "RAILS_ROOT/config/solr".
+Config files now live in your application and not the plugin.
+
 More info
 ======
 [http://github.com/mauricio/acts_as_solr/tree/master](http://github.com/mauricio/acts_as_solr/tree/master)
