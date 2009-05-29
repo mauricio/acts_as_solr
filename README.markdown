@@ -29,9 +29,7 @@ Features
 Things to be done
 ======
 
-* Simplify configuration
 * Examples using the "did you mean?" feature
-* Upgrade and improve Jetty config
 
 Mantainer
 ======
@@ -67,8 +65,8 @@ Basic Usage
     acts_as_solr
   end
 
-# With this acts_as_solr will index all string and text fields on your
-# active_record model
+# With this acts_as_solr will index all fields in your active_record model
+# that are not it's primary key, crated_at or updated_at fields.
 
 # Or if you want, you can specify only the fields that should be indexed:
 
