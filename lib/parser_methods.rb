@@ -100,7 +100,7 @@ module ActsAsSolr #:nodoc:
 
       add_scores(query_results, solr_data) if parse_configuration[:format] == :objects
 
-      result = parse_configuration[:format] == :objects ? reorder( query_results, options ) : ids
+      result = parse_configuration[:format] == :objects ? reorder( query_results, solr_data, options ) : ids
       
       results.update(:facets => solr_data.data['facet_counts']) if options[:facets]
       results.update({:docs => result, :total => solr_data.total, :max_score => solr_data.max_score})
@@ -113,11 +113,14 @@ module ActsAsSolr #:nodoc:
     end
     
     # Reorders the instances keeping the order returned from Solr
-    def reorder(results, options = {})
+    def reorder(results, solr_data, options = {})
       return results if options[:find] && options[:find][:order]
-      results.sort do |first,last|
-        first.solr_score <=> last.solr_score
+      returned_results = []
+      solr_data.docs.each_with_index do |doc, index|
+        doc_id = doc["#{solr_configuration[:primary_key_field]}"]
+        returned_results[index] = results.detect { |i| i.id == doc_id }
       end
+      returned_results
     end
 
     # Replaces the field types based on the types (if any) specified
