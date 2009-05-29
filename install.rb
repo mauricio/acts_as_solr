@@ -12,6 +12,6 @@ install File.join( 'config', 'solr.yml' )
 
 unless File.exists?( "#{RAILS_ROOT}/config/solr" )
   Dir.mkdir( File.join(RAILS_ROOT, 'config', 'solr') )
-  solr_dir = File.join( File.dirname(__FILE__), 'solr', 'solr', 'conf' )
+  solr_dir = File.join( File.dirname(__FILE__), 'jetty', 'solr', 'conf' )
   FileUtils.cp_r( solr_dir, File.join(RAILS_ROOT, 'config', 'solr', 'conf') )
 end

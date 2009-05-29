@@ -6,14 +6,14 @@ require "#{File.dirname(__FILE__)}/../config/environment.rb"
 
 namespace :solr do
 
+  def pid_path
+    ENV['PID_PATH'] || "#{RAILS_ROOT}/tmp/pids/solr_#{RAILS_ENV}.pid"
+  end
+
   desc 'Starts Solr. Options accepted: PID_PATH, RAILS_ENV, SOLR_HOME'
   task :start => :environment do
 
-    plugin_path = File.dirname(__FILE__) + "/../solr"
-
-    unless File.exists?( File.join( plugin_path, 'logs' ) )
-      Dir.mkdir( File.join( plugin_path, 'logs' ) )
-    end
+    plugin_path = File.dirname(__FILE__) + "/../jetty"
 
     begin
       n = Net::HTTP.new( SOLR_HOST , SOLR_PORT)
@@ -23,12 +23,21 @@ namespace :solr do
       puts "Port #{SOLR_PORT} in use" and return
 
     rescue Errno::ECONNREFUSED, Errno::ENETUNREACH #not responding
+      options = {
+        'solr.solr.home' => SOLR_PATH,
+        'solr.data.dir' => File.join(SOLR_PATH, 'data', RAILS_ENV),
+        'jetty.host' => SOLR_HOST,
+        'jetty.port' => SOLR_PORT,
+        'jetty.logs' => "#{File.join( RAILS_ROOT, 'log' )}",
+        'rails.env' => RAILS_ENV,
+        'java.util.logging.config.file' => File.join( SOLR_PATH, 'config', 'logging.properties' )
+      }.map { |k,v| "-D#{k}=#{v}" }.join( " " )
+
       Dir.chdir( plugin_path ) do
         pid = fork do
-          exec "java -Dsolr.solr.home=#{SOLR_PATH} -Dsolr.data.dir=#{SOLR_PATH}/data/#{RAILS_ENV} -Djetty.host=#{SOLR_HOST} -Djetty.port=#{SOLR_PORT} -jar start.jar"
+          exec "java #{options} -jar start.jar"
         end
         sleep(5)
-        pid_path = ENV['PID_PATH'] || "#{RAILS_ROOT}/tmp/pids/solr_#{RAILS_ENV}.pid"
         File.open( pid_path , "w"){ |f| f << pid}
         puts "#{ENV['RAILS_ENV']} Solr started successfully on #{SOLR_PORT}, pid: #{pid}."
       end
@@ -38,7 +47,6 @@ namespace :solr do
   desc 'Stops Solr. Options accepted: PID_PATH, RAILS_ENV, SOLR_HOME'
   task :stop => :environment do
     fork do
-      pid_path = ENV['PID_PATH'] || "#{RAILS_ROOT}/tmp/pids/solr_#{RAILS_ENV}.pid"
       if File.exists?(pid_path)
         File.open(pid_path, "r") do |f|
           pid = f.readline
@@ -55,7 +63,7 @@ namespace :solr do
   
   desc 'Remove Solr index'
   task :destroy_index => :environment do
-    if File.exists?("#{SOLR_PATH}data/#{RAILS_ENV}")
+    if File.exists?("#{SOLR_PATH}/data/#{RAILS_ENV}")
       Dir[ SOLR_PATH + "data/#{RAILS_ENV}/index/*"].each{|f| File.unlink(f)}
       Dir.rmdir(SOLR_PATH + "/data/#{RAILS_ENV}/index")
       puts "Index files removed under " + RAILS_ENV + " environment"
@@ -75,10 +83,8 @@ namespace :solr do
     
   end
 
-  desc 'Setup solr environment'
+  desc 'Starts Solr and rebuilds your index'
   task :setup => :environment do
-    plugin_path = File.dirname(__FILE__) + "/../solr"
-    system "mkdir -p #{plugin_path}/logs && mkdir -p #{plugin_path}/tmp"
     Rake::Task["solr:start"].invoke
     sleep(5)
     ActsAsSolr::Post.rebuild_indexes
