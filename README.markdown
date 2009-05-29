@@ -54,7 +54,7 @@ Config files now live in your application and not the plugin.
 
 More info
 ======
-[http://github.com/mauricio/acts_as_solr/tree/master](http://github.com/mauricio/acts_as_solr/tree/master)
+[http://wiki.github.com/mauricio/acts_as_solr](http://wiki.github.com/mauricio/acts_as_solr)
 
 Basic Usage
 ======
