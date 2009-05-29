@@ -31,7 +31,8 @@ module ActsAsSolr #:nodoc:
       begin
         yield
       rescue => ex
-        logger.error(ex)
+        logger.error( "Solr error: #{ex.inspect}")
+        logger.error( ex.backtrace.join("\n") )
         if acts_as_solr_configuration[:error_handler]
           acts_as_solr_configuration[:error_handler].call(ex)
         end
