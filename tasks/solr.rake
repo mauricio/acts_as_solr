@@ -57,7 +57,6 @@ namespace :solr do
         pid = fork do
           exec "java #{options} -jar start.jar"
         end
-        sleep(5)
         File.open( pid_path , "w"){ |f| f << pid}
         puts "#{ENV['RAILS_ENV']} Solr started successfully on #{SOLR_PORT}, pid: #{pid}."
       end
@@ -66,18 +65,16 @@ namespace :solr do
   
   desc 'Stops Solr. Options accepted: PID_PATH, RAILS_ENV, SOLR_HOME'
   task :stop => :environment do
-    fork do
-      if File.exists?(pid_path)
-        File.open(pid_path, "r") do |f|
-          pid = f.readline
-          Process.kill('TERM', pid.to_i)
-        end
-        File.unlink(pid_path)
-        Rake::Task["solr:destroy_index"].invoke if RAILS_ENV == 'test'
-        puts "Solr shutdown successfully."
-      else
-        puts "Solr is not running.  I haven't done anything."
+    if File.exists?(pid_path)
+      File.open(pid_path, "r") do |f|
+        pid = f.readline
+        Process.kill('TERM', pid.to_i)
       end
+      File.unlink(pid_path)
+      Rake::Task["solr:destroy_index"].invoke if RAILS_ENV == 'test'
+      puts "Solr shutdown successfully."
+    else
+      puts "Solr is not running.  I haven't done anything."
     end
   end
   
