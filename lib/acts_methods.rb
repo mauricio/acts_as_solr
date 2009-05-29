@@ -130,7 +130,7 @@ module ActsAsSolr #:nodoc:
       if acts_as_solr_configuration[:fields].respond_to?(:each)
         process_fields(acts_as_solr_configuration[:fields])
       else
-        process_fields(self.new.attributes.keys.map { |k| k.to_sym })
+        process_fields(self.column_names.map { |k| k.to_sym })
       end
 
     end
