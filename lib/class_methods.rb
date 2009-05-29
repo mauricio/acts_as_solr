@@ -8,7 +8,7 @@ module ActsAsSolr #:nodoc:
     include ParserMethods
     
     # Finds instances of a model. Terms are ANDed by default, can be overwritten 
-    # by using OR between terms
+    # by using OR between terms.
     # 
     # Here's a sample (untested) code for your controller:
     # 
@@ -18,7 +18,9 @@ module ActsAsSolr #:nodoc:
     # 
     # You can also search for specific fields by searching for 'field:value'
     # The object returned (ActsAsSolr::SearchResults) works just like a common
-    # array and is also compatible with will_paginate helpers.
+    # array and is also compatible with will_paginate helpers. Every object
+    # returned contain it's solr_score value set to the relevance store returned
+    # by Solr.
     # 
     # ====options:
     #
@@ -68,15 +70,14 @@ module ActsAsSolr #:nodoc:
     #                                                            "price:[500 TO *]"],
     #                                                 :fields => [:category, :manufacturer],
     #                                                 :browse => ["category:Memory","manufacturer:Someone"]}
-    # 
-    # scores:: If set to true this will return the score as a 'solr_score' attribute
-    #          for each one of the instances found. Does not currently work with find_id_by_solr
-    # 
-    #            books = Book.find_by_solr 'ruby OR splinter', :scores => true
-    #            books.records.first.solr_score
-    #            => 1.21321397
-    #            books.records.last.solr_score
-    #            => 0.12321548
+    #
+    # find:: This option allows you to complement the find call performed by
+    #        the plugin when building the query to load your active_record objects.
+    #        A very common use is to :include associations of the model you're searching.
+    #        All valid ActiveRecord::Base.find options can be set using this option:
+    #
+    #        Book.find_by_solr("sample", :find => { :include => :author, :order => 'created_at DESC', :conditions => { :enabled => true } })
+    #
     # 
     def find_by_solr(query, options={})
       return [] if query.blank?

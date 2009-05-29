@@ -3,7 +3,17 @@ module ActsAsSolr #:nodoc:
   module ActsMethods
     
     # declares a class as solr-searchable
-    # 
+    #
+    # Calling acts_as_solr alone in your ActiveRecord object will make all
+    # fields that are not the primary key, updated_at and created_at
+    # indexed fields.
+    #
+    #            class NewsStory < ActiveRecord::Base
+    #              acts_as_solr # this will index all user fields
+    #                           # leaving out the id, updated_at and created_at
+    #            end
+    #
+    #
     # ==== options:
     # fields:: This option can be used to specify only the fields you'd
     #          like to index. If not given, all the attributes from the 
@@ -130,7 +140,7 @@ module ActsAsSolr #:nodoc:
       if acts_as_solr_configuration[:fields].respond_to?(:each)
         process_fields(acts_as_solr_configuration[:fields])
       else
-        process_fields(self.column_names.map { |k| k.to_sym })
+        process_fields((self.column_names - [ self.primary_key, 'updated_at', 'created_at' ]).map { |k| k.to_sym })
       end
 
     end

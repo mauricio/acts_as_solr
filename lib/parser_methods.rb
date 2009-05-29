@@ -6,7 +6,7 @@ module ActsAsSolr #:nodoc:
     
     # Method used by mostly all the ClassMethods when doing a search
     def parse_query(query=nil, options={}, models=nil)
-      valid_options = [:offset, :limit, :facets, :models, :results_format, :order, :scores, :operator, :page, :per_page, :conditions]
+      valid_options = [:offset, :limit, :facets, :models, :results_format, :order, :scores, :operator, :page, :per_page, :conditions, :find]
 
       if options[:page] and options[:per_page]
         options[:limit] = options[:per_page].to_i
@@ -85,13 +85,22 @@ module ActsAsSolr #:nodoc:
       ids = solr_data.docs.collect {|doc| doc["#{solr_configuration[:primary_key_field]}"]}.flatten
       conditions = nil
       if options[:conditions].blank?
-        conditions = [ "#{self.table_name}.#{primary_key} in (?)", ids ]
+        conditions = [ "#{quoted_table_name}.#{primary_key} in (?)", ids ]
       else
-        conditions = [ "#{self.table_name}.#{primary_key} IN (?) AND #{sanitize_sql(options[:conditions])}", ids ]
+        conditions = [ "#{quoted_table_name}.#{primary_key} IN (?) AND #{sanitize_sql(options[:conditions])}", ids ]
       end
-      
-      result = parse_configuration[:format] == :objects ? reorder(self.find(:all, :conditions => conditions), ids) : ids
-      add_scores(result, solr_data) if parse_configuration[:format] == :objects && options[:scores]
+
+      query_results = if options[:find]
+        with_scope :find => options[:find] do
+          find(:all, :conditions => conditions)
+        end
+      else
+        find(:all, :conditions => conditions)
+      end
+
+      add_scores(query_results, solr_data) if parse_configuration[:format] == :objects
+
+      result = parse_configuration[:format] == :objects ? reorder( query_results, options ) : ids
       
       results.update(:facets => solr_data.data['facet_counts']) if options[:facets]
       results.update({:docs => result, :total => solr_data.total, :max_score => solr_data.max_score})
@@ -104,13 +113,11 @@ module ActsAsSolr #:nodoc:
     end
     
     # Reorders the instances keeping the order returned from Solr
-    def reorder(things, ids)
-      ordered_things = []
-      ids.each do |id|
-        record = things.find {|thing| record_id(thing).to_s == id.to_s}
-        ordered_things << record if record
+    def reorder(results, options = {})
+      return results if options[:find] && options[:find][:order]
+      results.sort do |first,last|
+        first.solr_score <=> last.solr_score
       end
-      ordered_things
     end
 
     # Replaces the field types based on the types (if any) specified
@@ -138,14 +145,11 @@ module ActsAsSolr #:nodoc:
     
     # Adds the score to each one of the instances found
     def add_scores(results, solr_data)
-      with_score = []
+      results = results.dup
       solr_data.docs.each do |doc|
-        with_score.push([doc["score"], 
-            results.find {|record| record_id(record).to_s == doc["#{solr_configuration[:primary_key_field]}"].to_s }])
-      end
-      with_score.each do |score,object| 
-        class <<object; attr_accessor :solr_score; end
-        object.solr_score = score
+        item = results.detect { |i| i.id == doc["#{solr_configuration[:primary_key_field]}"] }
+        item.solr_score = doc['score']
+        results.delete( item )
       end
     end
   end

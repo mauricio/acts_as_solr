@@ -2,6 +2,14 @@ module ActsAsSolr #:nodoc:
   
   module InstanceMethods
 
+    def solr_score
+      @solr_score
+    end
+
+    def solr_score=( new_score )
+      @solr_score = new_score
+    end
+
     # Solr id is <class.name>:<id> to be unique across all models
     def solr_id
       "#{self.class.name}:#{record_id(self)}"
