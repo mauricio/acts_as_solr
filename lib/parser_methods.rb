@@ -74,13 +74,13 @@ module ActsAsSolr #:nodoc:
         results[:per_page] = options[:limit].to_i
       end
 
-      configuration = {
+      parse_configuration = {
         :format => :objects
       }
       results.update(:facets => {'facet_fields' => []}) if options[:facets]
       return SearchResults.new(results) if solr_data.total == 0
       
-      configuration.update(options) if options.is_a?(Hash)
+      parse_configuration.update(options) if options.is_a?(Hash)
 
       ids = solr_data.docs.collect {|doc| doc["#{solr_configuration[:primary_key_field]}"]}.flatten
       conditions = nil
@@ -90,8 +90,8 @@ module ActsAsSolr #:nodoc:
         conditions = [ "#{self.table_name}.#{primary_key} IN (?) AND #{sanitize_sql(options[:conditions])}", ids ]
       end
       
-      result = configuration[:format] == :objects ? reorder(self.find(:all, :conditions => conditions), ids) : ids
-      add_scores(result, solr_data) if configuration[:format] == :objects && options[:scores]
+      result = parse_configuration[:format] == :objects ? reorder(self.find(:all, :conditions => conditions), ids) : ids
+      add_scores(result, solr_data) if parse_configuration[:format] == :objects && options[:scores]
       
       results.update(:facets => solr_data.data['facet_counts']) if options[:facets]
       results.update({:docs => result, :total => solr_data.total, :max_score => solr_data.max_score})
@@ -117,8 +117,8 @@ module ActsAsSolr #:nodoc:
     # on the acts_as_solr call
     def replace_types(strings, include_colon=true)
       suffix = include_colon ? ":" : ""
-      if configuration[:solr_fields] && configuration[:solr_fields].is_a?(Array)
-        configuration[:solr_fields].each do |solr_field|
+      if acts_as_solr_configuration[:solr_fields] && acts_as_solr_configuration[:solr_fields].is_a?(Array)
+        acts_as_solr_configuration[:solr_fields].each do |solr_field|
           field_type = get_solr_field_type(:text)
           if solr_field.is_a?(Hash)
             solr_field.each do |name,value|

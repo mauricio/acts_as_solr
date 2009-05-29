@@ -7,38 +7,53 @@ module ActsAsSolr #:nodoc:
       "#{self.class.name}:#{record_id(self)}"
     end
 
-    # saves to the Solr index
     def solr_save
-      return true unless configuration[:if]
-      if evaluate_condition(configuration[:if], self)
-        solr_add to_solr_doc
-        solr_commit if configuration[:auto_commit]
-        true
-      else
-        solr_destroy
+      solr_do_with_rescue do
+        return true unless acts_as_solr_configuration[:if]
+        if evaluate_condition(acts_as_solr_configuration[:if], self)
+          solr_add to_solr_doc
+          solr_commit if acts_as_solr_configuration[:auto_commit]
+        else
+          solr_destroy
+        end
       end
     end
 
     # remove from index
     def solr_destroy
-      solr_delete solr_id
-      solr_commit if configuration[:auto_commit]
-      true
+      solr_do_with_rescue do
+        solr_delete solr_id
+        solr_commit if acts_as_solr_configuration[:auto_commit]
+      end
+    end
+
+    def solr_do_with_rescue
+      begin
+        yield
+      rescue => ex
+        logger.error(ex)
+        if acts_as_solr_configuration[:error_handler]
+          acts_as_solr_configuration[:error_handler].call(ex)
+        end
+        ActsAsSolr::Post.handle_error( ex )
+        raise ex if ActsAsSolr::Post.solr_configuration[:raise_error]
+      end
+      return true
     end
 
     # convert instance to Solr document
     def to_solr_doc
       doc = Solr::Document.new
-      doc.boost = validate_boost(configuration[:boost]) if configuration[:boost]
+      doc.boost = validate_boost(acts_as_solr_configuration[:boost]) if acts_as_solr_configuration[:boost]
       
       doc << {:id => solr_id,
         solr_configuration[:type_field] => self.class.name,
         solr_configuration[:primary_key_field] => record_id(self).to_s}
 
       # iterate through the fields and add them to the document,
-      configuration[:solr_fields].each do |field|
+      acts_as_solr_configuration[:solr_fields].each do |field|
         field_name = field
-        field_type = configuration[:facets] && configuration[:facets].include?(field) ? :facet : :text
+        field_type = acts_as_solr_configuration[:facets] && acts_as_solr_configuration[:facets].include?(field) ? :facet : :text
         field_boost= solr_configuration[:default_boost]
 
         if field.is_a?(Hash)
@@ -74,15 +89,15 @@ module ActsAsSolr #:nodoc:
         end
       end
       
-      add_includes(doc) if configuration[:include]
+      add_includes(doc) if acts_as_solr_configuration[:include]
       return doc
     end
     
     private
 
     def add_includes(doc)
-      if configuration[:include].is_a?(Array)
-        configuration[:include].each do |association|
+      if acts_as_solr_configuration[:include].is_a?(Array)
+        acts_as_solr_configuration[:include].each do |association|
           data = ""
           klass = association.to_s.singularize
           case self.class.reflect_on_association(association).macro

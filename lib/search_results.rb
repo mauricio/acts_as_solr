@@ -1,16 +1,16 @@
 module ActsAsSolr #:nodoc:
   
   # TODO: Possibly looking into hooking it up with Solr::Response::Standard
-  # 
-  # Class that returns the search results with four methods.
+  #
+  # Class that returns the search results with four methods. This class
+  # behaves just like any enumerable object (like an Array) and you can use
+  # it just as if you where using a common Array.
   # 
   #   books = Book.find_by_solr 'ruby'
   # 
   # the above will return a SearchResults class with 4 methods:
   # 
-  # docs|results|records: will return an array of records found
-  # 
-  #   books.records.empty?
+  #   books.empty?
   #   => false
   # 
   # total|num_found|total_hits: will return the total number of records found
@@ -35,7 +35,7 @@ module ActsAsSolr #:nodoc:
     def initialize(solr_data={})
       @solr_data = solr_data
       self.total_pages = if self.per_page.nil? || self.total_entries == 0
-        1
+        0
       elsif self.total_entries % self.per_page == 0
         self.total_entries / self.per_page
       else
@@ -71,11 +71,11 @@ module ActsAsSolr #:nodoc:
     end
 
     def blank?
-      self.results.blank?
+      total_entries == 0
     end
 
     def size
-      self.results.size
+      total_entries
     end
 
     def offset
@@ -105,7 +105,7 @@ module ActsAsSolr #:nodoc:
     def method_missing(symbol, *args, &block)
       self.results.send(symbol, *args, &block)
     rescue NoMethodError
-      raise NoMethodError, "There is no method called #{symbol} at #{self.class.name}"
+      raise NoMethodError, "There is no method called #{symbol} at #{self.class.name} - #{self.inspect}"
     end
 
     def next_page

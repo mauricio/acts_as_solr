@@ -39,19 +39,6 @@ module ActsAsSolr #:nodoc:
     # 
     #          Setting the field type preserves its original type when indexed
     # 
-    # additional_fields:: This option takes fields to be include in the index
-    #                     in addition to those derived from the database. You
-    #                     can also use this option to include custom fields 
-    #                     derived from methods you define. This option will be
-    #                     ignored if the :fields option is given. It also accepts
-    #                     the same field types as the option above
-    # 
-    #                      class Movie < ActiveRecord::Base
-    #                       acts_as_solr :additional_fields => [:current_time]
-    #                       def current_time
-    #                         Time.now.to_s
-    #                       end
-    #                      end
     # 
     # exclude_fields:: This option taks an array of fields that should be ignored from indexing:
     # 
@@ -94,7 +81,15 @@ module ActsAsSolr #:nodoc:
     #                 class Author < ActiveRecord::Base
     #                   acts_as_solr :auto_commit => false
     #                 end
-    # 
+    #
+    # error_handler:: A proc that is going to receive the errors generated
+    #                 when trying to index or search for objects from this
+    #                 class (optional):
+    #
+    #                 class Author < ActiveRecord::Base
+    #                   acts_as_solr :error_handler => proc { |ex| puts ex.inspect }
+    #                 end
+    #
     def acts_as_solr(options={}, solr_options={})
       
       extend ClassMethods
@@ -104,19 +99,18 @@ module ActsAsSolr #:nodoc:
 
       ActsAsSolr::Post.indexed_classes << self
 
-      cattr_accessor :configuration
-      cattr_accessor :stop_words_regex
+      cattr_accessor :acts_as_solr_configuration
       cattr_accessor :solr_configuration
       
-      self.configuration = { 
+      self.acts_as_solr_configuration = {
         :fields => nil,
-        :additional_fields => nil,
         :exclude_fields => [],
         :auto_commit => false,
         :include => nil,
         :facets => nil,
         :boost => nil,
-        :if => "true"
+        :if => "true",
+        :error_handler => nil
       }  
       self.solr_configuration = {
         :type_field => "type_t",
@@ -124,20 +118,19 @@ module ActsAsSolr #:nodoc:
         :default_boost => 1.0
       }
       
-      configuration.update(options) if options.is_a?(Hash)
+      acts_as_solr_configuration.update(options) if options.is_a?(Hash)
       solr_configuration.update(solr_options) if solr_options.is_a?(Hash)
-      Deprecation.validate_index(configuration)
+      Deprecation.validate_index(acts_as_solr_configuration)
       
-      configuration[:solr_fields] = []
+      acts_as_solr_configuration[:solr_fields] = []
       
       after_save    :solr_save
       after_destroy :solr_destroy
 
-      if configuration[:fields].respond_to?(:each)
-        process_fields(configuration[:fields])
+      if acts_as_solr_configuration[:fields].respond_to?(:each)
+        process_fields(acts_as_solr_configuration[:fields])
       else
         process_fields(self.new.attributes.keys.map { |k| k.to_sym })
-        process_fields(configuration[:additional_fields])
       end
 
     end
@@ -145,7 +138,7 @@ module ActsAsSolr #:nodoc:
     private
 
     def get_field_value(field)
-      configuration[:solr_fields] << field
+      acts_as_solr_configuration[:solr_fields] << field
       type  = if field.is_a?( Hash ) and field.values[0].is_a?( Hash )
         field.values[0][:type]
       elsif field.is_a?( Hash ) and !field.values[0].is_a?( Hash )
@@ -154,25 +147,27 @@ module ActsAsSolr #:nodoc:
         nil
       end
       field = field.is_a?(Hash) ? field.keys[0] : field
-      define_method("#{field}_for_solr".to_sym) do
-        begin
-          value = self[field] || self.instance_variable_get("@#{field.to_s}".to_sym) || self.send(field.to_sym)
-          case type 
-            # format dates properly; return nil for nil dates 
-            when :date: value ? value.utc.strftime("%Y-%m-%dT%H:%M:%SZ") : nil 
-            else value
-          end
-        rescue
-          value = ''
-          logger.debug "There was a problem getting the value for the field '#{field}': #{$!}"
-        end
+
+      case type
+      when :date
+        class_eval %Q!
+        def #{field}_for_solr
+          value = self[:#{field}] || self.send(:#{field})
+          value = value.utc.strftime("%Y-%m-%dT%H:%M:%SZ") if value
+          value
+        end!
+      else
+        class_eval %Q!
+        def #{field}_for_solr
+          self[:#{field}] || self.send(:#{field})
+        end!
       end
     end
     
     def process_fields(raw_field)
       if raw_field.respond_to?(:each)
         raw_field.each do |field|
-          next if configuration[:exclude_fields].include?(field)
+          next if acts_as_solr_configuration[:exclude_fields].include?(field)
           if field.is_a?( Hash )
             field.each do |k,v|
               get_field_value( k => v )

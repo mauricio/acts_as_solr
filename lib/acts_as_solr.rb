@@ -42,6 +42,24 @@ module ActsAsSolr
 
     class << self
 
+      def error_handler(&block)
+        if block_given?
+          @error_handler = block
+        else
+          @error_handler
+        end
+      end
+
+      def error_handler=( new_handler )
+        @error_handler = new_handler
+      end
+
+      def handle_error( ex )
+        if @error_handler
+          @error_handler.call( ex )
+        end
+      end
+
       def execute(request)
         Solr::Connection.new( solr_configuration[:url] ).send(request)
       end
@@ -66,4 +84,10 @@ solr_file_path = File.join( RAILS_ENV, 'config', 'solr.yml' )
 
 if File.exists?( solr_file_path )
   ActsAsSolr::Post.solr_configuration = YAML::load_file( solr_file_path )[RAILS_ENV].symbolize_keys
+end
+
+if ActsAsSolr::Post.solr_configuration[:raise_error].blank? || ActsAsSolr::Post.solr_configuration[:raise_error].strip.downcase == 'false'
+  ActsAsSolr::Post.solr_configuration[:raise_error] = false
+else
+  ActsAsSolr::Post.solr_configuration[:raise_error] = true
 end
