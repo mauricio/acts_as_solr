@@ -89,7 +89,7 @@ end
 # reopen ActiveRecord and include the acts_as_solr method
 ActiveRecord::Base.extend ActsAsSolr::ActsMethods
 
-solr_file_path = File.join( RAILS_ENV, 'config', 'solr.yml' )
+solr_file_path = File.join( RAILS_ROOT, 'config', 'solr.yml' )
 
 if File.exists?( solr_file_path )
   ActsAsSolr::Post.solr_configuration = YAML::load_file( solr_file_path )[RAILS_ENV].symbolize_keys
