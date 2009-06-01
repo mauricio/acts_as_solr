@@ -84,14 +84,19 @@ namespace :solr do
     end
   end
 
-  desc 'Rebuild solr index'
+  desc %Q!Rebuilds the solr index - options are MODEL which named the model
+  name to be indexed, the default is reindex all models and START that is the
+  number of days to use as a condition when finding models!
   task :rebuild_index => :environment do
     load_models
-    if ENV['start'].blank?
-      ActsAsSolr::Post.rebuild_indexes
+
+    target = ENV['MODEL'].blank? ? ActsAsSolr::Post : ENV['MODEL'].constantize
+
+    if ENV['START'].blank?
+      target.rebuild_solr_index
     else
-      ActsAsSolr::Post.rebuild_indexes( 100 ) do |ar, options|
-        ar.all(options.merge({:order => 'id', :conditions => [ 'updated_at > ?', ENV['start'].to_i.days.ago ]}))
+      target.rebuild_solr_index( 100 ) do |ar, options|
+        ar.all(options.merge({:order => 'id', :conditions => [ 'updated_at > ?', ENV['START'].to_i.days.ago ]}))
       end
     end
     

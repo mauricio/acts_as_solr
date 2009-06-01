@@ -64,7 +64,7 @@ module ActsAsSolr
         Solr::Connection.new( solr_configuration[:url] ).send(request)
       end
 
-      def rebuild_indexes( batch_size = 100, &finder )
+      def rebuild_solr_index( batch_size = 100, &finder )
         puts "Rebuilding indexes for -> #{indexed_classes.inspect}"
         indexed_classes.each do |c|
           c.rebuild_solr_index( batch_size, &finder )
