@@ -16,9 +16,6 @@ namespace :solr do
   end
 
   def require_file_or_directory( path )
-
-    excludes = ['..', '.']
-
     Dir.entries( path ).find_all { |f| !f.starts_with?('.') }.each do |f|
       full_path = File.join( path, f )
       if File.directory?( full_path )
