@@ -19,11 +19,11 @@ namespace :solr do
 
     excludes = ['..', '.']
 
-    Dir.entries( path ).find_all { |f| !excludes.include?( f )}.each do |f|
+    Dir.entries( path ).find_all { |f| !f.starts_with?('.') }.each do |f|
       full_path = File.join( path, f )
       if File.directory?( full_path )
         require_file_or_directory( full_path )
-      else
+      elsif full_path.ends_with?( '.rb' )
         require full_path
       end
     end

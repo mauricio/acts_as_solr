@@ -169,7 +169,9 @@ module ActsAsSolr #:nodoc:
       else
         class_eval %Q!
         def #{field}_for_solr
-          self[:#{field}] || self.send(:#{field})
+          value = self[:#{field}] || self.send(:#{field})
+          value.gsub!( /[\x00-\x1F]|\x7F/ , ' ') if value
+          value
         end!
       end
     end
