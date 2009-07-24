@@ -162,15 +162,15 @@ module ActsAsSolr #:nodoc:
       when :date
         class_eval %Q!
         def #{field}_for_solr
-          value = self[:#{field}] || self.send(:#{field})
+          value = self.send(:#{field})
           value = value.utc.strftime("%Y-%m-%dT%H:%M:%SZ") if value
           value
         end!
       else
         class_eval %Q{
         def #{field}_for_solr
-          value = self[:#{field}] || self.send(:#{field})
-          value.gsub!( /[\x00-\x1F]|\x7F/ , ' ') if value
+          value = self.send(:#{field}).to_s
+          value.gsub!( /[\x00-\x1F]|\x7F/ , ' ')
           value
         end}
       end

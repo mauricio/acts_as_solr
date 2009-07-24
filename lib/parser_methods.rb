@@ -151,6 +151,7 @@ module ActsAsSolr #:nodoc:
       results = results.dup
       solr_data.docs.each do |doc|
         item = results.detect { |i| i.id == doc["#{solr_configuration[:primary_key_field]}"] }
+        next unless item
         item.solr_score = doc['score']
         results.delete( item )
       end
