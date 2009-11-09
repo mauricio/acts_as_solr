@@ -9,7 +9,7 @@ The current stable release is v1.0 and was released on 20-05-2009.
 
 This plugin is intended as a way to "upgrade" and older or incompatible version
 of acts_as_solr you might be using. It's unlikely that I'm going to add new features
-to this specific fork and you're starting up a new project and want to use Solr
+to this specific fork and if you're starting up a new project and want to use Solr
 you should definitely look for http://github.com/outoftime/sunspot/
 
 Changes
