@@ -81,7 +81,7 @@ module ActsAsSolr #:nodoc:
     # 
     def find_by_solr(query, options={})
       return [] if query.blank?
-      data = parse_query(query.downcase, options)
+      data = parse_query(query, options)
       return parse_results(data, options) if data
     end
     
