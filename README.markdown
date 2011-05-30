@@ -1,3 +1,6 @@
+This plugin **SHOULD NOT** be used anymore, please use [Sunspot](http://techbot.me/2011/01/full-text-search-in-in-rails-with-sunspot-and-solr/)
+
+
 `acts_as_solr Rails plugin`
 ======
 This plugin adds full text search capabilities and many other nifty features from Apache's [Solr](http://lucene.apache.org/solr/) to any Rails model.
